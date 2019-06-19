@@ -1,0 +1,108 @@
+#define CWR P3OUT &= (~BIT6)
+#define DR P3OUT |= BIT6
+#define WRITE P3OUT &= (~BIT7)
+#define READ P3OUT |= BIT7
+#define ENC_HIGH P2OUT |= BIT3
+#define ENC_LOW P2OUT &= (~BIT3)
+
+#include<msp430.h>
+
+int a;
+void DELAY(unsigned int i)
+{
+   unsigned int j;
+   for(;i>0;i--)
+    { for(j=0;j<
+    100;j++); }
+}
+
+void data_read(void) {
+
+ENC_LOW;
+DELAY(1);
+ENC_HIGH;
+}
+
+void data_write(void) {
+
+ENC_HIGH;
+DELAY(1);
+ENC_LOW;
+}
+
+void check_busy(void)
+{
+    P4DIR &= (~BIT7);
+
+while((P4IN&BIT7)==1)
+{
+    data_read();
+}
+P4DIR |= BIT7;
+}
+
+void LCD_CMD(void)
+{ check_busy();
+  WRITE;
+  CWR;
+  P4OUT = (P4OUT&0X00)|a;
+  data_write();
+}
+
+
+void LCD_DAT(void)
+{ check_busy();
+ WRITE;
+ DR;
+ P4OUT = (P4OUT&0X00)|a;
+ data_write();
+}
+
+void LCD_init(void) {
+    P2DIR |= 0xFF;
+
+          P3DIR |= 0xFF;
+
+          P4DIR |= 0xFF;
+
+          P2OUT &= 0x00;
+
+          P3OUT &= 0x00;
+
+          P4OUT &= 0x00;
+
+    a = 0X38;
+    LCD_CMD();
+    //_delay_cycles(5000);//delay to refresh
+    DELAY(6);
+a = 0X0F;
+LCD_CMD();
+//_delay_cycles(5000);//delay to refresh
+DELAY(5);
+a = 0X01;
+LCD_CMD();
+//_delay_cycles(5000);//delay to refresh
+DELAY(6);
+a = 0X06;
+LCD_CMD();
+//DELAY(5);_delay_cycles(5000);//delay to refresh
+DELAY(6);
+a = 0X80;
+LCD_CMD();
+_delay_cycles(5000);//delay to refresh
+//DELAY(5);
+}
+
+void main() {
+    WDTCTL = WDTPW + WDTHOLD;
+    P2SEL &= ~BIT7; //clear it to make it as a gpio
+    P2DIR |= BIT7;
+LCD_init();
+
+P2OUT^=0X00;
+  a = 0X39;
+  LCD_DAT();
+  a = 0X39;
+  LCD_DAT();
+while(1);
+}

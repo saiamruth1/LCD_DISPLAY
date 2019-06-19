@@ -91,9 +91,9 @@ void LCD_init(void)
 
 void main()
 {
-    P2DIR |= 0xFF;
+    P2DIR |= 0x08;
 
-          P3DIR |= 0xFF;
+          P3DIR |= 0xC0;
 
           P4DIR |= 0xFF;
 
@@ -105,7 +105,7 @@ void main()
 
     P2SEL &= ~BIT7;
 
-   // P2OUT = 0X00;
+    P2OUT &= (~BIT7);
 
     LCD_init();
 
